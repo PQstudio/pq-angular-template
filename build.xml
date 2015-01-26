@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="pq-angularjs-template" default="init">
+    <property name="web.dir" location="app/scripts"/>
+
+    <target name="init">
+        <delete file="${web.dir}/constant.js" quiet="true"/>
+        <copy file="${web.dir}/constant.js.tpl"
+        tofile="${web.dir}/constant.js" >
+        </copy>
+    </target>
+</project>

@@ -1,0 +1,21 @@
+{
+  "name": "pq-angularjs-template",
+  "version": "0.0.0",
+  "authors": [
+    "PQ studio <kontakt@pqstudio.pl>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    
+  },
+  "resolutions": {
+    "bluebird": "~2.8.2"
+  }
+}

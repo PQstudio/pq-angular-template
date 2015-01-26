@@ -1,0 +1,8 @@
+node_modules
+bower_components
+vendor
+.sass-cache
+.tmp
+app/assets
+.DS_Store
+npm-debug.log
