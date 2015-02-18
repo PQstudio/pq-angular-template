@@ -9,6 +9,7 @@ var browserSync = require('browser-sync');
 var modRewrite = require('connect-modrewrite');
 var psi = require('psi');
 var reload = browserSync.reload;
+var rename = require('gulp-rename');
 var rev = require('gulp-rev');
 var sass = require('gulp-ruby-sass');
 var fingerprint = require('gulp-fingerprint');
@@ -39,10 +40,6 @@ gulp.task('jshint', function() {
     return gulp.src('app/scripts/**/*.js')
         .pipe($.jshint())
         .pipe($.jshint.reporter('jshint-stylish'))
-        .pipe(reload({
-            stream: true,
-            once: true
-        }))
 });
 
 // Optimize Images
@@ -61,16 +58,23 @@ gulp.task('images', function() {
 // Copy All Files At The Root Level (app)
 gulp.task('copy', function() {
     return gulp.src([
-            'app/*',
-            '!app/*.html',
-            '!app/scripts',
-            'node_modules/apache-server-configs/dist/.htaccess'
-        ], {
+        'app/*',
+        '!app/*.html',
+        '!app/scripts',
+        'node_modules/apache-server-configs/dist/.htaccess'
+    ], {
             dot: true
         }).pipe(gulp.dest('dist'))
         .pipe($.size({
             title: 'copy'
         }));
+});
+
+gulp.task('copy-constants', function() {
+    del.bind(null, ['app/scripts/constant.js'])
+    gulp.src(['app/scripts/constant.js.tpl'])
+        .pipe(rename('constant.js'))
+        .pipe(gulp.dest('app/scripts'));
 });
 
 // Copy Web Fonts To Dist
@@ -86,8 +90,8 @@ gulp.task('fonts', function() {
 gulp.task('styles', function() {
     // For best performance, don't add Sass partials to `gulp.src`
     return gulp.src([
-            'app/styles/main.scss'
-        ])
+        'app/styles/main.scss'
+    ])
         .pipe($.changed('styles', {
             extension: '.scss'
         }))
@@ -151,21 +155,9 @@ gulp.task('html', function() {
 
     return gulp.src('app/**/*.html')
         .pipe(assets)
-        // Concatenate And Minify JavaScript
-        // .pipe($.if('*.js', $.uglify({
-        //     preserveComments: 'some',
-        //     mangle: false
-        // })))
-        // Remove Any Unused CSS
-        // Note: If not using the Style Guide, you can delete it from
-        // the next line to only include styles your project uses.
-
-    // Concatenate And Minify Styles
-    // In case you are still using useref build blocks
-    .pipe(assets.restore())
-        // .pipe($.useref())
+        .pipe(assets.restore())
         // Minify Any HTML
-        .pipe($.if('*.html', $.minifyHtml(opts)))
+        // .pipe($.if('*.html', $.minifyHtml(opts)))
         // Output Files
         .pipe(gulp.dest('dist'))
         .pipe($.size({
@@ -175,8 +167,8 @@ gulp.task('html', function() {
 
 gulp.task('fingerprint', function() {
     return gulp.src(['dist/styles/*.css', 'dist/assets/scripts/*.js', 'dist/images/*.*'], {
-            base: path.join(process.cwd(), 'dist')
-        }).pipe(vinylPaths(del))
+        base: path.join(process.cwd(), 'dist')
+    }).pipe(vinylPaths(del))
         .pipe(rev())
         .pipe(gulp.dest('dist'))
         .pipe(rev.manifest())
@@ -196,8 +188,8 @@ gulp.task('fingerprint-replace', function() {
     var manifest = require(__dirname + '/.tmp/rev-manifest');
 
     return gulp.src(['dist/styles/*.css', 'dist/*.html'], {
-            base: 'dist'
-        })
+        base: 'dist'
+    })
         .pipe(fingerprint(manifest, options))
         .pipe(gulp.dest('dist'));
 });
@@ -205,8 +197,11 @@ gulp.task('fingerprint-replace', function() {
 // Clean Output Directory
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
+// Clean tmp files
+gulp.task('clean-tmp', del.bind(null, ['.tmp']));
+
 // Watch Files For Changes & Reload
-gulp.task('serve', ['styles', 'scripts'], function() {
+gulp.task('serve', ['clean-tmp', 'styles', 'serve:js:sequence'], function() {
     browserSync({
         notify: false,
         // Run as an https by uncommenting 'https: true'
@@ -216,15 +211,20 @@ gulp.task('serve', ['styles', 'scripts'], function() {
         server: {
             baseDir: ['.tmp', 'app'],
             middleware: [
-                modRewrite(['!\.html|\.js|\.css|\.png|\.jpg|\.svg|\.gif$ /index.html [L]'])
+                modRewrite(['!\.html|\.js|\.css|\.png|\.jpg|\.svg|\.gif|\.eot|\.woff|\.ttf$ /index.html [L]'])
             ]
         }
     });
 
     gulp.watch(['app/**/*.html'], reload);
     gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
-    gulp.watch(['app/scripts/**/*.js'], ['jshint', 'scripts']);
+    gulp.watch(['app/scripts/**/*.js'], ['serve:js:sequence', reload]);
     gulp.watch(['app/images/**/*'], reload);
+});
+
+
+gulp.task('serve:js:sequence', function() {
+    runSequence('scripts');
 });
 
 // Build and serve the output from the dist build
@@ -241,7 +241,7 @@ gulp.task('serve:dist', ['default'], function() {
 
 // Build Production Files, the Default Task
 gulp.task('default', ['clean'], function(cb) {
-    runSequence('styles', 'scripts-dist', ['jshint', 'html', 'images', 'fonts', 'copy'], 'fingerprint', 'fingerprint-replace', cb);
+    runSequence('styles', 'jshint', 'scripts-dist', ['html', 'images', 'fonts', 'copy'], 'fingerprint', 'fingerprint-replace', cb);
 });
 
 
@@ -252,9 +252,9 @@ gulp.task('mobile', function() {
         nokey: 'true',
         strategy: 'mobile',
     }, function(err, data) {
-        console.log('Score: ' + data.score);
-        console.log(data.pageStats);
-    });
+            console.log('Score: ' + data.score);
+            console.log(data.pageStats);
+        });
 });
 
 gulp.task('desktop', function() {
@@ -263,12 +263,12 @@ gulp.task('desktop', function() {
         // key: key,
         strategy: 'desktop',
     }, function(err, data) {
-        console.log('Score: ' + data.score);
-        console.log(data.pageStats);
-    });
+            console.log('Score: ' + data.score);
+            console.log(data.pageStats);
+        });
 });
 
 // Load custom tasks from the `tasks` directory
 try {
     require('require-dir')('tasks');
-} catch (err) {}
+} catch ( err ) {}
