@@ -5,6 +5,7 @@ var js = [
     'node_modules/angular-ui-router/release/angular-ui-router.js',
     'node_modules/angular-cookies/angular-cookies.js',
     'app/scripts/**/*.js',
+    'node_modules/underscore/underscore-min.js'
 ];
 
 module.exports = {

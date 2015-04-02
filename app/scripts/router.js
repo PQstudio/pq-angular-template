@@ -1,5 +1,5 @@
-app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', 'uiGmapGoogleMapApiProvider', 'RestangularProvider', 'apiRoot',
-    function($stateProvider, $urlRouterProvider, $locationProvider, GoogleMapApi, RestangularProvider, apiRoot) {
+app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', 'RestangularProvider', 'apiRoot',
+    function($stateProvider, $urlRouterProvider, $locationProvider, RestangularProvider, apiRoot) {
         'use strict';
         
         RestangularProvider.setBaseUrl(apiRoot);
@@ -8,7 +8,6 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', 'uiGmap
             enabled: true,
             requireBase: false
         }).hashPrefix('!');
-
 
     }
 ]);
